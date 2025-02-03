@@ -121,8 +121,6 @@ public class RulesetThreeTest {
 
     @Test
     public void testRandomizedRuleSetThree() {
-        StaticTartanStateEvaluator evaluator = new StaticTartanStateEvaluator();
-        StringBuffer log = new StringBuffer();
         Map<String, Object> randstate = new HashMap<>();
 
         Random rand = new Random();
