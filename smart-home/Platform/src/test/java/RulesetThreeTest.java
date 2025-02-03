@@ -37,9 +37,9 @@ public class RulesetThreeTest {
         initialState.put(IoTValues.ALARM_ACTIVE, false);
     }
 
+    // Boundary test: House occupied, light off, alarm disabled
     @Test
     public void testHouseOccupiedAndLightOff() {
-        // House occupied, light off, alarm disabled
         initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
         initialState.put(IoTValues.LIGHT_STATE, false);    // Light off
         initialState.put(IoTValues.ALARM_STATE, false);    // Alarm disabled
@@ -50,9 +50,9 @@ public class RulesetThreeTest {
         assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be turned on when house is occupied and alarm is disabled");
     }
 
+    // Boundary test: House occupied, light already on, alarm disabled
     @Test
     public void testHouseOccupiedAndLightOn() {
-        // House occupied, light already on, alarm disabled
         initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
         initialState.put(IoTValues.LIGHT_STATE, true);     // Light already on
         initialState.put(IoTValues.ALARM_STATE, false);    // Alarm disabled
@@ -63,9 +63,9 @@ public class RulesetThreeTest {
         assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should remain on when house is occupied and alarm is disabled");
     }
 
+    // Boundary test: House vacant, door open, alarm activated
     @Test
     public void testDoorOpenWithHouseVacant() {
-        // House vacant, door open, alarm activated
         initialState.put(IoTValues.PROXIMITY_STATE, false);  // House vacant
         initialState.put(IoTValues.DOOR_STATE, true);        // Door open
         initialState.put(IoTValues.ALARM_STATE, true);       // Alarm activated
@@ -89,9 +89,9 @@ public class RulesetThreeTest {
         assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "The door should remain closed when house is occupied and alarm is active");
     }
 
+    // House vacant, away timer should trigger
     @Test
     public void testAwayTimerTriggeredWhenHouseVacant() {
-        // House vacant, away timer should trigger
         initialState.put(IoTValues.PROXIMITY_STATE, false);  // House vacant
         initialState.put(IoTValues.AWAY_TIMER, false);       // Away timer not set
         initialState.put(IoTValues.LIGHT_STATE, true);       // Light on
@@ -105,9 +105,9 @@ public class RulesetThreeTest {
         assertTrue((Boolean) newState.get(IoTValues.ALARM_STATE), "Alarm should be enabled when the away timer is triggered");
     }
 
+    // Edge case: Extremely high or low temperature
     @Test
     public void testEdgeCaseExtremeTemperature() {
-        // Edge case: Extremely high or low temperature
         initialState.put(IoTValues.TEMP_READING, -100);       // Extremely low temperature
         initialState.put(IoTValues.TARGET_TEMP, 22);          // Target temperature
         initialState.put(IoTValues.HUMIDIFIER_STATE, false);  // Humidifier off
@@ -117,5 +117,53 @@ public class RulesetThreeTest {
 
         // Assert: The heater should be turned on in response to extreme cold
         assertTrue((Boolean) newState.get(IoTValues.HEATER_STATE), "Heater should be turned on when temperature is extremely low");
+    }
+
+    @Test
+    public void testRandomizedRuleSetThree() {
+        // Setup
+        StaticTartanStateEvaluator evaluator = new StaticTartanStateEvaluator();
+        StringBuffer log = new StringBuffer();
+        Map<String, Object> iniState = new HashMap<>();
+
+        // Initialize random generator
+        Random rand = new Random();
+
+        // Randomize IoT states for testing
+        iniState.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
+        iniState.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
+        iniState.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
+        iniState.put(IoTValues.HUMIDIFIER_STATE, rand.nextBoolean());  // Random humidifier state
+        iniState.put(IoTValues.DOOR_STATE, rand.nextBoolean());  // Random door state
+        iniState.put(IoTValues.LIGHT_STATE, rand.nextBoolean());  // Random light state
+        iniState.put(IoTValues.PROXIMITY_STATE, rand.nextBoolean());  // Random proximity state
+        iniState.put(IoTValues.ALARM_STATE, rand.nextBoolean());  // Random alarm state
+        iniState.put(IoTValues.HEATER_STATE, rand.nextBoolean());  // Random heater state
+        iniState.put(IoTValues.CHILLER_STATE, rand.nextBoolean());  // Random chiller state
+        iniState.put(IoTValues.HVAC_MODE, rand.nextBoolean() ? "HEATER" : "CHILLER");  // Random HVAC mode
+
+        // Evaluate the state based on the randomized values
+        Map<String, Object> newState = evaluator.evaluateState(iniState, log);
+
+        // Assertions based on the randomized state values for Rule Set Three
+        if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE) && !(Boolean) newState.get(IoTValues.ALARM_STATE)) {
+            assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be on if house is occupied and alarm is off");
+        } else if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE) && (Boolean) newState.get(IoTValues.ALARM_STATE)) {
+            assertFalse((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be off if house is occupied and alarm is on");
+        }
+
+        // Validate HVAC mode based on temperature readings and target temperature
+        if ((Integer) newState.get(IoTValues.TEMP_READING) < (Integer) newState.get(IoTValues.TARGET_TEMP)) {
+            assertEquals("HEATER", newState.get(IoTValues.HVAC_MODE), "HVAC mode should be HEATER if the temperature is lower than the target");
+        } else if ((Integer) newState.get(IoTValues.TEMP_READING) > (Integer) newState.get(IoTValues.TARGET_TEMP)) {
+            assertEquals("CHILLER", newState.get(IoTValues.HVAC_MODE), "HVAC mode should be CHILLER if the temperature is higher than the target");
+        }
+
+        // Check if the door state is updated correctly based on proximity
+        if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE)) {
+            assertTrue((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should remain open when proximity indicates presence");
+        } else {
+            assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should be closed when no presence is detected");
+        }
     }
 }
