@@ -43,7 +43,7 @@ class RulesetThreeTest {
      */
     @Test
     public void testVacantHouseClosesDoor() {
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert that the door is closed when the house is vacant
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -61,7 +61,7 @@ class RulesetThreeTest {
     @Test
     public void testVacantHouseClosesDoorWhenAwayTimerNotPassed() {
         initialState.put(IoTValues.AWAY_TIMER, false);
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert that the door is closed
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -79,7 +79,7 @@ class RulesetThreeTest {
     @Test
     public void testVacantHouseClosesDoorWithTimerPassed() {
         initialState.put(IoTValues.AWAY_TIMER, true);
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert that the door is closed
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -100,7 +100,7 @@ class RulesetThreeTest {
         initialState.put(IoTValues.PROXIMITY_STATE, "invalid_value");
 
         // Try to evaluate the state
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert: The proximity state should not affect door status due to invalid value
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -125,7 +125,7 @@ class RulesetThreeTest {
             initialState.put(IoTValues.PROXIMITY_STATE, isVacant);
             initialState.put(IoTValues.AWAY_TIMER, isAwayTimer);
 
-            HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+            var newState = evaluator.evaluateState(initialState, log);
 
             // Assert: Door state should always be closed when house is vacant
             if (isVacant) {
@@ -148,7 +148,7 @@ class RulesetThreeTest {
         // Set away timer to an invalid value (non-boolean)
         initialState.put(IoTValues.AWAY_TIMER, "invalid_value");
 
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert that the door will be closed because the system should ignore invalid away timer values
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -166,7 +166,7 @@ class RulesetThreeTest {
     @Test
     public void testExtremeTemperatureLow() {
         initialState.put(IoTValues.TEMP_READING, -100);  // Extreme low temperature
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert: Door should remain closed, regardless of temperature
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
@@ -184,7 +184,7 @@ class RulesetThreeTest {
     @Test
     public void testExtremeTemperatureHigh() {
         initialState.put(IoTValues.TEMP_READING, 100);  // Extreme high temperature
-        HashMap<String, Object> newState = evaluator.evaluateState(initialState, log);
+        var newState = evaluator.evaluateState(initialState, log);
 
         // Assert: Door should remain closed, regardless of temperature
         assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
