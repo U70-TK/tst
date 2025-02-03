@@ -91,14 +91,14 @@ public class RulesetThreeTest {
      * This verifies that proximity sensors' states are respected, and the door should remain open when the house is not vacant.
      */
     @Test
-    public void testOccupiedHouseKeepsDoorOpen() {
-        initialState.put(IoTValues.PROXIMITY_STATE, true);
+    public void testVacantHouseClosesDoorWithTimerPassed() {
+        initialState.put(IoTValues.AWAY_TIMER, true);
         Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Assert that the door remains open when the house is occupied
-        assertTrue((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should remain open when the house is occupied");
+        // Assert that the door is closed
+        assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should be closed when the house is vacant and timer has passed");
 
         // Check appropriate log message exists
-        assertFalse(log.toString().contains("Closed door"), "Log should not mention closing door when the house is occupied");
+        assertTrue(log.toString().contains("Closed door because house vacant"), "Log should contain message about closing door due to vacancy after timer");
     }
 }
