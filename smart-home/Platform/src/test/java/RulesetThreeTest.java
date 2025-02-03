@@ -8,7 +8,7 @@ import tartan.smarthome.resources.StaticTartanStateEvaluator;
 
 import java.util.*;
 
-public class RulesetThreeTest {
+class RulesetThreeTest {
 
     private static StaticTartanStateEvaluator evaluator;
     private static Map<String, Object> initialState;

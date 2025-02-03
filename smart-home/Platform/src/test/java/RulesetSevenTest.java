@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StaticTartanStateEvaluatorTest {
+class RulesetSevenTest {
 
     private static StaticTartanStateEvaluator evaluator;
     private static Map<String, Object> initialState;
