@@ -1,91 +1,87 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id 'info.solidsoft.pitest' version '1.15.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.15.0'
 }
 group 'Tartan'
 version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'application'
-mainClassName = 'tartan.smarthome.TartanHomeApplication'
-sourceCompatibility = 11
-targetCompatibility = 11
+application {
+    mainClass = 'tartan.smarthome.TartanHomeApplication'
+}
+sourceCompatibility = 21
+targetCompatibility = 21
 repositories {
     mavenLocal()
     mavenCentral()
 }
 dependencies {
-    // JAX-B dependencies for JDK 9+
-    implementation "javax.xml.bind:jaxb-api:2.2.11"
-    implementation "com.sun.xml.bind:jaxb-core:2.2.11"
-    implementation "com.sun.xml.bind:jaxb-impl:2.2.11"
+    implementation "javax.xml.bind:jaxb-api:2.3.1"
+    implementation "com.sun.xml.bind:jaxb-core:4.0.4"
+    implementation "com.sun.xml.bind:jaxb-impl:4.0.4"
     implementation "javax.activation:activation:1.1.1"
-    implementation 'io.dropwizard:dropwizard-bom:1.0.0'
-    implementation 'io.dropwizard:dropwizard-core:1.0.0'
-    implementation 'io.dropwizard:dropwizard-views-freemarker:1.0.0'
-    implementation 'io.dropwizard:dropwizard-auth:1.0.0'
-    implementation 'io.dropwizard:dropwizard-hibernate:1.0.0'
-    implementation 'io.dropwizard:dropwizard-assets:0.9.1'
-    implementation 'mysql:mysql-connector-java:8.0.13'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-    implementation 'commons-io:commons-io:2.15.1'
-// Mockito
-    testImplementation "org.mockito:mockito-core:2.+"
-    testImplementation 'org.powermock:powermock-mockito-release-full:1.5.4'
+    implementation 'io.dropwizard:dropwizard-bom:4.0.7'
+    implementation 'io.dropwizard:dropwizard-core:4.0.7'
+    implementation 'io.dropwizard:dropwizard-views-freemarker:4.0.7'
+    implementation 'io.dropwizard:dropwizard-auth:4.0.7'
+    implementation 'io.dropwizard:dropwizard-hibernate:4.0.7'
+    implementation 'io.dropwizard:dropwizard-assets:4.0.7'
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
-
-run {
-    args = ['server', 'config.yml']
-}
-
-shadowJar {
-    mergeServiceFiles()
-    manifest {
-        attributes 'Implementation-Title': rootProject.name
-        attributes 'Implementation-Version': rootProject.version
-        attributes 'Implementation-Vendor-Id': rootProject.group
-        attributes 'Created-By': 'Gradle ' + gradle.gradleVersion
-        attributes 'Main-Class': mainClassName
+    run {
+        args = ['server', 'config.yml']
     }
-    archiveName rootProject.name + '-' + rootProject.version + '.jar'
-}
-
-test {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-
-    // jacoco {
-    //     includes = ['tartan/smarthome/resources/StaticTartanStateEvaluator.java']
-    // }
-}
-
-jacoco {
-    reportsDirectory = layout.buildDirectory.dir('reports')
-    toolVersion = "0.8.7"
-}
+    shadowJar {
+        mergeServiceFiles()
+        manifest {
+            attributes(
+                'Implementation-Title': rootProject.name,
+                'Implementation-Version': rootProject.version,
+                'Implementation-Vendor-Id': rootProject.group,
+                'Created-By': 'Gradle ' + gradle.gradleVersion,
+                'Main-Class': 'tartan.smarthome.TartanHomeApplication'
+            )
+        }
+        archiveFileName.set(rootProject.name + '-' + rootProject.version + '.jar')
+    }
+    tasks.named('distZip').configure {
+        dependsOn tasks.named('shadowJar')
+    }
+    tasks.named('distTar').configure {
+        dependsOn tasks.named('shadowJar')
+    }
+    tasks.named('startScripts').configure {
+        dependsOn tasks.named('shadowJar')
+    }
+    tasks.named('startShadowScripts').configure {
+        dependsOn tasks.named('shadowJar')
+    }
+    tasks.named('jar').configure {
+        enabled = false
+    }
+    test {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport // report is always generated after tests run
+    }
 
 jacocoTestReport {
-    dependsOn test
-    def inclusions = ['tartan/smarthome/resources/StaticTartanStateEvaluator.class']
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it).include(inclusions)
-        }))
-    }
+    dependsOn test // tests are required to run before generating the report
+}
+jacoco {
+    toolVersion = "0.8.12"
+}
+jacocoTestReport {
     reports {
-        csv.required = true
-        xml.required = true
-        html.required = true
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
     }
-
 }
-
-
 pitest {
-    junit5PluginVersion = '1.0.0'
-    targetClasses = ['tartan.smarthome.resources.StaticTartanStateEvaluator']
-    targetTests = ['tartan.unit.*']
+    //adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
+    junit5PluginVersion = '1.2.1'
+    pitestVersion = '1.15.2'
+    // ...
 }
-
-
-build.dependsOn 'pitest'
