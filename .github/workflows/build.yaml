@@ -22,7 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-
       - name: Run build
         working-directory: ./smart-home/Platform
         run: ./gradlew build
