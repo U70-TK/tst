@@ -121,9 +121,12 @@ public class RulesetThreeTest {
 
     @Test
     public void testRandomizedRuleSetThree() {
-        Map<String, Object> randstate = new HashMap<>();
+        // Reinitialize the log for each test to avoid potential state carryover
+        StringBuffer log = new StringBuffer();
 
+        Map<String, Object> randstate = new HashMap<>();
         Random rand = new Random();
+
         randstate.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
         randstate.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
         randstate.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
@@ -135,6 +138,8 @@ public class RulesetThreeTest {
         randstate.put(IoTValues.HEATER_STATE, rand.nextBoolean());  // Random heater state
         randstate.put(IoTValues.CHILLER_STATE, rand.nextBoolean());  // Random chiller state
         randstate.put(IoTValues.HVAC_MODE, rand.nextBoolean() ? "HEATER" : "CHILLER");  // Random HVAC mode
+
+        evaluator = new StaticTartanStateEvaluator();  // Reinitialize evaluator
 
         Map<String, Object> newState = evaluator.evaluateState(randstate, log);
 
