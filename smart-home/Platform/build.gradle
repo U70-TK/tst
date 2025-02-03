@@ -66,12 +66,14 @@ dependencies {
         useJUnitPlatform()
         finalizedBy jacocoTestReport // report is always generated after tests run
     }
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 
-jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
 }
 jacoco {
-    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir('reports')
+    toolVersion = "0.8.7"
 }
 jacocoTestReport {
     dependsOn test
