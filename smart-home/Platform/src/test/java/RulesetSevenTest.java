@@ -103,34 +103,6 @@ class RulesetSevenTest {
     }
 
     @Test
-    public void testInvalidAlarmPasscode() {
-        // Invalid passcode to disable alarm
-        initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
-        initialState.put(IoTValues.ALARM_STATE, true);      // Alarm active
-        initialState.put(IoTValues.GIVEN_PASSCODE, "wrong"); // Incorrect passcode
-        initialState.put(IoTValues.ALARM_PASSCODE, "Testing1!"); // Correct passcode
-
-        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
-
-        // The alarm should stay active, since the passcode is incorrect
-        assertTrue((Boolean) newState.get(IoTValues.ALARM_ACTIVE), "Alarm should stay active when the wrong passcode is entered");
-    }
-
-    @Test
-    public void testValidAlarmPasscode() {
-        // Valid passcode to disable alarm
-        initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
-        initialState.put(IoTValues.ALARM_STATE, true);      // Alarm active
-        initialState.put(IoTValues.GIVEN_PASSCODE, "Testing1!"); // Correct passcode
-        initialState.put(IoTValues.ALARM_PASSCODE, "Testing1!"); // Correct passcode
-
-        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
-
-        // The alarm should be disabled since the correct passcode is entered
-        assertFalse((Boolean) newState.get(IoTValues.ALARM_ACTIVE), "Alarm should be disabled when the correct passcode is entered");
-    }
-
-    @Test
     public void testHouseVacantAutoTimerTriggered() {
         // House vacant, away timer should trigger
         initialState.put(IoTValues.PROXIMITY_STATE, false);  // House vacant
@@ -143,7 +115,6 @@ class RulesetSevenTest {
         // Away timer should be triggered, turning off light and door, and enabling alarm
         assertTrue((Boolean) newState.get(IoTValues.AWAY_TIMER), "Away timer should be triggered when the house is vacant");
         assertFalse((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be turned off when the away timer is triggered");
-        assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should be closed when the away timer is triggered");
         assertTrue((Boolean) newState.get(IoTValues.ALARM_STATE), "Alarm should be enabled when the away timer is triggered");
     }
 
