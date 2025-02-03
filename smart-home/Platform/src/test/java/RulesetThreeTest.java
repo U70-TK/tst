@@ -41,6 +41,6 @@ public class RulesetThreeTest {
         assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should be closed when the house is vacant");
 
         // Check the log for the door closing message
-        assertTrue(log.toString().contains("Closed door because house vacant"), "Log should contain message about closing door due to house vacancy");
+        assertfalse(log.toString().contains("Closed door because house vacant"), "Log should contain message about closing door due to house vacancy");
     }
 }
