@@ -1,24 +1,18 @@
-name: CI Workflow for automated build and testing of Tartan Home System
-
+name: Build
+run-name: ${{ github.actor }} is building Tartan Home
 on:
   workflow_dispatch:
   push:
     branches:
       - main
 
-
+# from gradle's documentation https://docs.gradle.org/current/userguide/github-actions.html
 jobs:
-
   build-project:
-
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v3
-
-      - name: Grant execute permissions to gradlew
-        run: chmod +x ./smart-home/Platform/gradlew
 
       - name: Run build with Gradle Wrapper
         working-directory: ./smart-home/Platform
