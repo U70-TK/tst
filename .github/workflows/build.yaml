@@ -1,19 +1,21 @@
 name: Build
-run-name: ${{ github.actor }} is building Tartan Home
+
+run-name: Building Tartan Home
+
 on:
   workflow_dispatch:
   push:
     branches:
       - main
 
-# from gradle's documentation https://docs.gradle.org/current/userguide/github-actions.html
+
 jobs:
   build-project:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # self-hosted
     steps:
       - name: Checkout project sources
         uses: actions/checkout@v3
 
-      - name: Run build with Gradle Wrapper
+      - name: Run build
         working-directory: ./smart-home/Platform
         run: ./gradlew build

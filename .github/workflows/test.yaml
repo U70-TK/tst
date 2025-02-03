@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
 
-# from gradle's documentation https://docs.gradle.org/current/userguide/github-actions.html
 jobs:
   run-tests:
     runs-on: ubuntu-latest
