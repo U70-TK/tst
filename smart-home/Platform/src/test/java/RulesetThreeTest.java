@@ -2,7 +2,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import tartan.smarthome.resources.StaticTartanStateEvaluator;
 import tartan.smarthome.resources.iotcontroller.IoTValues;
-
+import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -121,15 +121,11 @@ public class RulesetThreeTest {
 
     @Test
     public void testRandomizedRuleSetThree() {
-        // Setup
         StaticTartanStateEvaluator evaluator = new StaticTartanStateEvaluator();
         StringBuffer log = new StringBuffer();
         Map<String, Object> iniState = new HashMap<>();
 
-        // Initialize random generator
         Random rand = new Random();
-
-        // Randomize IoT states for testing
         iniState.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
         iniState.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
         iniState.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
