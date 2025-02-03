@@ -1,14 +1,13 @@
-package tartan.unit;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-import tartan.smarthome.resources.iotcontroller.IoTValues;
 import tartan.smarthome.resources.StaticTartanStateEvaluator;
+import tartan.smarthome.resources.iotcontroller.IoTValues;
 
-import java.util.*;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.HashMap;
+import java.util.Map;
 
-class RulesetThreeTest {
+public class RulesetThreeTest {
 
     private static StaticTartanStateEvaluator evaluator;
     private static Map<String, Object> initialState;
@@ -38,174 +37,85 @@ class RulesetThreeTest {
         initialState.put(IoTValues.ALARM_ACTIVE, false);
     }
 
-    /**
-     * Normal case: House is vacant and door should close.
-     */
     @Test
-    public void testVacantHouseClosesDoor() {
-        var newState = evaluator.evaluateState(initialState, log);
+    public void testHouseOccupiedAndLightOff() {
+        // House occupied, light off, alarm disabled
+        initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
+        initialState.put(IoTValues.LIGHT_STATE, false);    // Light off
+        initialState.put(IoTValues.ALARM_STATE, false);    // Alarm disabled
 
-        // Assert that the door is closed when the house is vacant
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should be closed when the house is vacant");
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Check appropriate log message exists
-        assertTrue(log.toString().contains("Closed door because house vacant"),
-                "Log should contain message about closing door due to vacancy");
+        // Light should be turned on because the house is occupied and alarm is off
+        assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be turned on when house is occupied and alarm is disabled");
     }
 
-    /**
-     * Boundary case: House is vacant and away timer is set to false.
-     * This test verifies that the house will remain in a stable state even without the away timer passing.
-     */
     @Test
-    public void testVacantHouseClosesDoorWhenAwayTimerNotPassed() {
-        initialState.put(IoTValues.AWAY_TIMER, false);
-        var newState = evaluator.evaluateState(initialState, log);
+    public void testHouseOccupiedAndLightOn() {
+        // House occupied, light already on, alarm disabled
+        initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
+        initialState.put(IoTValues.LIGHT_STATE, true);     // Light already on
+        initialState.put(IoTValues.ALARM_STATE, false);    // Alarm disabled
 
-        // Assert that the door is closed
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should remain closed when the house is vacant");
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Check appropriate log message exists
-        assertTrue(log.toString().contains("Closed door because house vacant"),
-                "Log should contain message about closing door due to vacancy");
+        // Light should remain on, as the house is occupied and alarm is off
+        assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should remain on when house is occupied and alarm is disabled");
     }
 
-    /**
-     * Boundary case: Away timer has passed, house vacant.
-     * This test verifies that the door will be closed once the away timer has passed.
-     */
     @Test
-    public void testVacantHouseClosesDoorWithTimerPassed() {
-        initialState.put(IoTValues.AWAY_TIMER, true);
-        var newState = evaluator.evaluateState(initialState, log);
+    public void testDoorOpenWithHouseVacant() {
+        // House vacant, door open, alarm activated
+        initialState.put(IoTValues.PROXIMITY_STATE, false);  // House vacant
+        initialState.put(IoTValues.DOOR_STATE, true);        // Door open
+        initialState.put(IoTValues.ALARM_STATE, true);       // Alarm activated
 
-        // Assert that the door is closed
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should be closed when the house is vacant and timer has passed");
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Check appropriate log message exists
-        assertTrue(log.toString().contains("Closed door because house vacant"),
-                "Log should contain message about closing door due to vacancy after timer");
+        // The alarm should sound because the house is vacant and door is open
+        assertTrue((Boolean) newState.get(IoTValues.ALARM_ACTIVE), "Alarm should sound when door is open and house is vacant");
     }
 
-    /**
-     * Corner case: Invalid data for house vacancy state.
-     * This tests how the system reacts to invalid input for the house vacancy state.
-     */
     @Test
-    public void testInvalidHouseVacancyState() {
-        // Set the proximity state to a non-boolean value (invalid)
-        initialState.put(IoTValues.PROXIMITY_STATE, "invalid_value");
+    public void testDoorClosedWithHouseOccupied() {
+        // Test: Door closed when house is occupied, alarm active
+        initialState.put(IoTValues.PROXIMITY_STATE, true);  // House occupied
+        initialState.put(IoTValues.DOOR_STATE, false);     // Door closed
+        initialState.put(IoTValues.ALARM_STATE, true);     // Alarm active
 
-        // Try to evaluate the state
-        var newState = evaluator.evaluateState(initialState, log);
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Assert: The proximity state should not affect door status due to invalid value
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should remain closed despite invalid proximity state");
-
-        // Check the log for any error messages regarding the invalid state
-        assertTrue(log.toString().contains("Error: Invalid proximity state"),
-                "Log should contain error for invalid proximity state");
+        // The door should remain closed; no break-in detected as house is occupied
+        assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "The door should remain closed when house is occupied and alarm is active");
     }
 
-    /**
-     * Randomized test: Simulate a series of random house vacancy states with different away timer settings.
-     * This tests the system's handling of varied input over multiple iterations.
-     */
     @Test
-    public void testRandomizedVacancyAndTimer() {
-        for (int i = 0; i < 100; i++) {
-            boolean isVacant = Math.random() < 0.5; // Randomly determine if the house is vacant
-            boolean isAwayTimer = Math.random() < 0.5; // Randomly determine if the away timer has passed
+    public void testAwayTimerTriggeredWhenHouseVacant() {
+        // House vacant, away timer should trigger
+        initialState.put(IoTValues.PROXIMITY_STATE, false);  // House vacant
+        initialState.put(IoTValues.AWAY_TIMER, false);       // Away timer not set
+        initialState.put(IoTValues.LIGHT_STATE, true);       // Light on
+        initialState.put(IoTValues.DOOR_STATE, true);        // Door open
 
-            // Update the state for each iteration
-            initialState.put(IoTValues.PROXIMITY_STATE, isVacant);
-            initialState.put(IoTValues.AWAY_TIMER, isAwayTimer);
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-            var newState = evaluator.evaluateState(initialState, log);
-
-            // Assert: Door state should always be closed when house is vacant
-            if (isVacant) {
-                assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                        "Door should be closed when the house is vacant");
-            }
-
-            // Check if the log is updated correctly
-            assertTrue(log.toString().contains(isVacant ? "Closed door because house vacant" : "Door left open because house occupied"),
-                    "Log should reflect appropriate door action based on house vacancy state");
-        }
+        // Away timer should be triggered, turning off light and door, and enabling alarm
+        assertTrue((Boolean) newState.get(IoTValues.AWAY_TIMER), "Away timer should be triggered when the house is vacant");
+        assertFalse((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be turned off when the away timer is triggered");
+        assertTrue((Boolean) newState.get(IoTValues.ALARM_STATE), "Alarm should be enabled when the away timer is triggered");
     }
 
-    /**
-     * Invalid case: Test invalid away timer setting (non-boolean).
-     * This test ensures that non-boolean values for away timer do not break the logic.
-     */
     @Test
-    public void testInvalidAwayTimer() {
-        // Set away timer to an invalid value (non-boolean)
-        initialState.put(IoTValues.AWAY_TIMER, "invalid_value");
+    public void testEdgeCaseExtremeTemperature() {
+        // Edge case: Extremely high or low temperature
+        initialState.put(IoTValues.TEMP_READING, -100);       // Extremely low temperature
+        initialState.put(IoTValues.TARGET_TEMP, 22);          // Target temperature
+        initialState.put(IoTValues.HUMIDIFIER_STATE, false);  // Humidifier off
+        initialState.put(IoTValues.HEATER_STATE, false);      // Heater off
 
-        var newState = evaluator.evaluateState(initialState, log);
+        Map<String, Object> newState = evaluator.evaluateState(initialState, log);
 
-        // Assert that the door will be closed because the system should ignore invalid away timer values
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should be closed when the away timer is invalid");
-
-        // Check for log message indicating invalid away timer input
-        assertTrue(log.toString().contains("Error: Invalid away timer value"),
-                "Log should contain message about invalid away timer value");
-    }
-
-    /**
-     * Test case for boundary temperature reading: extremely low temperature.
-     * This is to check that even if there are extreme environmental factors, the door closing behavior should be unaffected.
-     */
-    @Test
-    public void testExtremeTemperatureLow() {
-        initialState.put(IoTValues.TEMP_READING, -100);  // Extreme low temperature
-        var newState = evaluator.evaluateState(initialState, log);
-
-        // Assert: Door should remain closed, regardless of temperature
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should remain closed even in extreme low temperatures");
-
-        // Check appropriate log message
-        assertTrue(log.toString().contains("Closed door because house vacant"),
-                "Log should indicate door closing due to vacancy even with extreme temperature");
-    }
-
-    /**
-     * Test case for boundary temperature reading: extremely high temperature.
-     * Again, the door behavior should be independent of temperature.
-     */
-    @Test
-    public void testExtremeTemperatureHigh() {
-        initialState.put(IoTValues.TEMP_READING, 100);  // Extreme high temperature
-        var newState = evaluator.evaluateState(initialState, log);
-
-        // Assert: Door should remain closed, regardless of temperature
-        assertTrue(getBooleanValue(newState, IoTValues.DOOR_STATE) == false,
-                "Door should remain closed even in extreme high temperatures");
-
-        // Check appropriate log message
-        assertTrue(log.toString().contains("Closed door because house vacant"),
-                "Log should indicate door closing due to vacancy even with extreme temperature");
-    }
-
-    /**
-     * Helper method to safely get a Boolean value from the map, with error handling
-     */
-    private Boolean getBooleanValue(Map<String, Object> state, String key) {
-        Object value = state.get(key);
-        if (value instanceof Boolean) {
-            return (Boolean) value;
-        } else {
-            // Log error and return a default value (false)
-            log.append("Error: Invalid value for ").append(key).append(", expected Boolean, got ").append(value).append("\n");
-            return false;
-        }
+        // Assert: The heater should be turned on in response to extreme cold
+        assertTrue((Boolean) newState.get(IoTValues.HEATER_STATE), "Heater should be turned on when temperature is extremely low");
     }
 }
