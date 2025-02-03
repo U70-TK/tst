@@ -41,5 +41,6 @@ jobs:
             java-version: '21'
 
         - name: Run JUnit
+          working-directory: ./smart-home/Platform
           run: |
             ./gradlew test
