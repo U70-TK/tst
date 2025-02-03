@@ -1,0 +1,16 @@
+name: Run Tests
+run-name: running tests
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  run-tests:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v3
+
+      - name: Run tests with Gradle Wrapper
+        working-directory: ./smart-home/Platform
+        run: ./gradlew test

@@ -1,0 +1,22 @@
+name: CI Workflow for automated build and testing of Tartan Home System
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+
+jobs:
+
+  build-project:
+
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout project sources
+        uses: actions/checkout@v3
+
+      - name: Run build with Gradle Wrapper
+        working-directory: ./smart-home/Platform
+        run: ./gradlew build
