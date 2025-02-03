@@ -36,7 +36,7 @@ jobs:
           add: '*.svg'
 
       - name: Upload Coverage
-        uses: actions/upload-artifact@v4  # Updated to v4
+        uses: actions/upload-artifact@v4
         with:
           name: jacoco report
           path: ./smart-home/Platform/build/reports/test
