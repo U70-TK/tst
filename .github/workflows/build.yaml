@@ -17,6 +17,9 @@ jobs:
       - name: Checkout project sources
         uses: actions/checkout@v3
 
+      - name: Grant execute permissions to gradlew
+        run: chmod +x ./smart-home/Platform/gradlew
+
       - name: Run build with Gradle Wrapper
         working-directory: ./smart-home/Platform
         run: ./gradlew build
