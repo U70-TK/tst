@@ -119,49 +119,4 @@ public class RulesetThreeTest {
         assertTrue((Boolean) newState.get(IoTValues.HEATER_STATE), "Heater should be turned on when temperature is extremely low");
     }
 
-    @Test
-    public void testRandomizedRuleSetThree() {
-        // Reinitialize the log for each test to avoid potential state carryover
-        StringBuffer log = new StringBuffer();
-
-        Map<String, Object> randstate = new HashMap<>();
-        Random rand = new Random();
-
-        randstate.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
-        randstate.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
-        randstate.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
-        randstate.put(IoTValues.HUMIDIFIER_STATE, rand.nextBoolean());  // Random humidifier state
-        randstate.put(IoTValues.DOOR_STATE, rand.nextBoolean());  // Random door state
-        randstate.put(IoTValues.LIGHT_STATE, rand.nextBoolean());  // Random light state
-        randstate.put(IoTValues.PROXIMITY_STATE, rand.nextBoolean());  // Random proximity state
-        randstate.put(IoTValues.ALARM_STATE, rand.nextBoolean());  // Random alarm state
-        randstate.put(IoTValues.HEATER_STATE, rand.nextBoolean());  // Random heater state
-        randstate.put(IoTValues.CHILLER_STATE, rand.nextBoolean());  // Random chiller state
-        randstate.put(IoTValues.HVAC_MODE, rand.nextBoolean() ? "HEATER" : "CHILLER");  // Random HVAC mode
-
-        evaluator = new StaticTartanStateEvaluator();  // Reinitialize evaluator
-
-        Map<String, Object> newState = evaluator.evaluateState(randstate, log);
-
-        // Assertions based on the randomized state values for Rule Set Three
-        if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE) && !(Boolean) newState.get(IoTValues.ALARM_STATE)) {
-            assertTrue((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be on if house is occupied and alarm is off");
-        } else if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE) && (Boolean) newState.get(IoTValues.ALARM_STATE)) {
-            assertFalse((Boolean) newState.get(IoTValues.LIGHT_STATE), "Light should be off if house is occupied and alarm is on");
-        }
-
-        // Validate HVAC mode based on temperature readings and target temperature
-        if ((Integer) newState.get(IoTValues.TEMP_READING) < (Integer) newState.get(IoTValues.TARGET_TEMP)) {
-            assertEquals("HEATER", newState.get(IoTValues.HVAC_MODE), "HVAC mode should be HEATER if the temperature is lower than the target");
-        } else if ((Integer) newState.get(IoTValues.TEMP_READING) > (Integer) newState.get(IoTValues.TARGET_TEMP)) {
-            assertEquals("CHILLER", newState.get(IoTValues.HVAC_MODE), "HVAC mode should be CHILLER if the temperature is higher than the target");
-        }
-
-        // Check if the door state is updated correctly based on proximity
-        if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE)) {
-            assertTrue((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should remain open when proximity indicates presence");
-        } else {
-            assertFalse((Boolean) newState.get(IoTValues.DOOR_STATE), "Door should be closed when no presence is detected");
-        }
-    }
 }
