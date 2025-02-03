@@ -123,23 +123,22 @@ public class RulesetThreeTest {
     public void testRandomizedRuleSetThree() {
         StaticTartanStateEvaluator evaluator = new StaticTartanStateEvaluator();
         StringBuffer log = new StringBuffer();
-        Map<String, Object> iniState = new HashMap<>();
+        Map<String, Object> randstate = new HashMap<>();
 
         Random rand = new Random();
-        iniState.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
-        iniState.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
-        iniState.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
-        iniState.put(IoTValues.HUMIDIFIER_STATE, rand.nextBoolean());  // Random humidifier state
-        iniState.put(IoTValues.DOOR_STATE, rand.nextBoolean());  // Random door state
-        iniState.put(IoTValues.LIGHT_STATE, rand.nextBoolean());  // Random light state
-        iniState.put(IoTValues.PROXIMITY_STATE, rand.nextBoolean());  // Random proximity state
-        iniState.put(IoTValues.ALARM_STATE, rand.nextBoolean());  // Random alarm state
-        iniState.put(IoTValues.HEATER_STATE, rand.nextBoolean());  // Random heater state
-        iniState.put(IoTValues.CHILLER_STATE, rand.nextBoolean());  // Random chiller state
-        iniState.put(IoTValues.HVAC_MODE, rand.nextBoolean() ? "HEATER" : "CHILLER");  // Random HVAC mode
+        randstate.put(IoTValues.TEMP_READING, rand.nextInt(50));  // Random temp between 0 and 50
+        randstate.put(IoTValues.HUMIDITY_READING, rand.nextInt(101));  // Random humidity between 0 and 100
+        randstate.put(IoTValues.TARGET_TEMP, rand.nextInt(50));  // Random target temp between 0 and 50
+        randstate.put(IoTValues.HUMIDIFIER_STATE, rand.nextBoolean());  // Random humidifier state
+        randstate.put(IoTValues.DOOR_STATE, rand.nextBoolean());  // Random door state
+        randstate.put(IoTValues.LIGHT_STATE, rand.nextBoolean());  // Random light state
+        randstate.put(IoTValues.PROXIMITY_STATE, rand.nextBoolean());  // Random proximity state
+        randstate.put(IoTValues.ALARM_STATE, rand.nextBoolean());  // Random alarm state
+        randstate.put(IoTValues.HEATER_STATE, rand.nextBoolean());  // Random heater state
+        randstate.put(IoTValues.CHILLER_STATE, rand.nextBoolean());  // Random chiller state
+        randstate.put(IoTValues.HVAC_MODE, rand.nextBoolean() ? "HEATER" : "CHILLER");  // Random HVAC mode
 
-        // Evaluate the state based on the randomized values
-        Map<String, Object> newState = evaluator.evaluateState(iniState, log);
+        Map<String, Object> newState = evaluator.evaluateState(randstate, log);
 
         // Assertions based on the randomized state values for Rule Set Three
         if ((Boolean) newState.get(IoTValues.PROXIMITY_STATE) && !(Boolean) newState.get(IoTValues.ALARM_STATE)) {
