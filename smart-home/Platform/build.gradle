@@ -28,7 +28,8 @@ dependencies {
     implementation 'io.dropwizard:dropwizard-hibernate:4.0.7'
     implementation 'io.dropwizard:dropwizard-assets:4.0.7'
     implementation 'mysql:mysql-connector-java:8.0.33'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
     run {
         args = ['server', 'config.yml']
