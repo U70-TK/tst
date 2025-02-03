@@ -74,11 +74,19 @@ jacoco {
     toolVersion = "0.8.12"
 }
 jacocoTestReport {
-    reports {
-        xml.required = false
-        csv.required = false
-        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    dependsOn test
+    def inclusions = ['tartan/smarthome/resources/StaticTartanStateEvaluator.class']
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it).include(inclusions)
+        }))
     }
+    reports {
+        csv.required = true
+        xml.required = true
+        html.required = true
+    }
+
 }
 pitest {
     //adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
