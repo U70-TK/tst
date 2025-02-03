@@ -11,6 +11,5 @@ out/
 build/
 dist/
 /gradle
-/gradlew
 /gradlew.bat
 /bin/
